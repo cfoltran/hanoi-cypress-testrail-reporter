@@ -2,10 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var axios = require('axios');
 var chalk = require('chalk');
+var deasync = require('deasync');
 var TestRail = /** @class */ (function () {
     function TestRail(options) {
         this.options = options;
         this.base = "https://" + options.domain + "/index.php?/api/v2";
+        this.res = undefined;
     }
     TestRail.prototype.createRun = function (name, description) {
         var _this = this;
@@ -41,6 +43,12 @@ var TestRail = /** @class */ (function () {
             },
         }).catch(function (error) { return console.error(error); });
     };
+    TestRail.prototype.waitResponse = function (delay) {
+        if (typeof this.res === "undefined" && delay > 0) {
+            deasync.sleep(1000);
+            this.waitResponse(delay - 1000);
+        }
+    };
     TestRail.prototype.publishResults = function (results) {
         var _this = this;
         if (this.options.createTestRun == "false") {
@@ -59,12 +67,14 @@ var TestRail = /** @class */ (function () {
                 password: this.options.password,
             },
             data: JSON.stringify({ results: results }),
-        })
-            .then(function (response) {
+        }).then(function (response) {
+            _this.res = response;
+        }).catch(function (error) { return console.error(error); });
+        this.waitResponse(20000);
+        if (this.res.status == 200) {
             console.log('\n', chalk.magenta.underline.bold('(TestRail Reporter)'));
-            console.log('\n', " - Results are published to " + chalk.magenta("https://" + _this.options.domain + "/index.php?/runs/view/" + _this.runId), '\n');
-        })
-            .catch(function (error) { return console.error(error); });
+            console.log('\n', " - Results are published to " + chalk.magenta("https://" + this.options.domain + "/index.php?/runs/view/" + this.runId), '\n');
+        }
     };
     return TestRail;
 }());

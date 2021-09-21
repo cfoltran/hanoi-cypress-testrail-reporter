@@ -111,7 +111,7 @@ export class TestRail {
             },
         })
             .then(response => {
-                response.data.forEach(item => {
+                response.data.tests.forEach(item => {
                     this.caseIDs.push(item.case_id);
                 });
             })

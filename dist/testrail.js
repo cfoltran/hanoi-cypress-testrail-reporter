@@ -100,7 +100,7 @@ var TestRail = /** @class */ (function () {
             },
         })
             .then(function (response) {
-            response.data.forEach(function (item) {
+            response.data.tests.forEach(function (item) {
                 _this.caseIDs.push(item.case_id);
             });
         })
